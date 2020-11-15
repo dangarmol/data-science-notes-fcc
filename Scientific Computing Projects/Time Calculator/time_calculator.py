@@ -28,10 +28,10 @@ def add_time(start, duration, weekday = None):
     end_hour = (start_hour + duration_hour) % 24
     days_carryover = math.trunc((start_hour + duration_hour) / 24)
 
-    # .title() makes first letter uppercase
     new_time = convert_to_ampm(str(end_hour) + ":" + "%02d" % end_min)
 
     if weekday:
+        # .title() makes first letter uppercase
         weekday_text = ", " + weekdays[(start_weekday_index + days_carryover) % 7].title()
         new_time += weekday_text
     
