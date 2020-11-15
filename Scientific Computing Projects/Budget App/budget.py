@@ -1,3 +1,5 @@
+import math
+
 class Category:
 
    def __init__(self, name):
@@ -28,6 +30,10 @@ class Category:
       return self.name
 
 
+   def get_ledger(self):
+      return self.ledger
+
+
    def transfer(self, amount, new_category):
       if not self.withdraw(amount, "Transfer to " + new_category.get_name()):
          return False
@@ -55,8 +61,59 @@ class Category:
 
 
 def create_spend_chart(categories):
-   chart_builder = ""
+   chart_builder = "Percentage spent by category\n"
 
+   percentages = calculate_rounded_percentage(categories)
+   category_names = list(percentages.keys())
 
+   for x in reversed(range(0, 101, 10)):
+      chart_builder += str(x).rjust(3) + "|"
+      for name in category_names:
+         if percentages[name] >= x:
+            chart_builder += " o "
+         else:
+            chart_builder += "   "
+      chart_builder += " \n"
+
+   chart_builder += " " * 4 + "-" * ((len(category_names) * 3) + 1) + "\n"
+
+   max_length = longest_word(category_names)
+
+   for height in range(max_length):
+      chart_builder += " " * 4
+      for name in category_names:
+         if len(name) > height:
+            chart_builder += " " + name[height] + " "
+         else:
+            chart_builder += " " * 3
+      chart_builder += " \n"
 
    return chart_builder
+
+
+def longest_word(category_names):
+   max = 0
+
+   for word in category_names:
+      if len(word) > max:
+         max = len(word)
+
+   return max
+
+
+# Returns the equivalent percentages in a dictionary as an integer multiple of 10 for each category
+def calculate_rounded_percentage(categories):
+   percentages = dict()
+   category_totals = dict()
+   total_spent = 0
+
+   for category in categories:
+      for transaction in category.get_ledger():
+         if transaction["amount"] < 0:
+            total_spent -= transaction["amount"]
+            category_totals[category.get_name()] = category_totals.get(category.get_name(), 0) - transaction["amount"]
+
+   for category_name in category_totals.keys():
+      percentages[category_name] = math.trunc((category_totals[category_name] / total_spent) * 10) * 10
+
+   return percentages
