@@ -7,7 +7,7 @@ register_matplotlib_converters()
 
 # Import data (Make sure to parse dates. Consider setting index column to 'date'.)
 df = pd.read_csv("fcc-forum-pageviews.csv", parse_dates=True)
-df.set_index('date', drop=False)
+df.set_index("date", drop=False)
 
 # Clean data
 df = df[(df["value"] >= df["value"].quantile(0.025)) & (df["value"] <= df["value"].quantile(0.975))]
@@ -20,7 +20,7 @@ def draw_line_plot():
     fig.set_figwidth(15)
     fig.set_figheight(5)
 
-    plt.plot(df, color="#CF0500", linewidth=.9)
+    plt.plot(df.index, df["value"], c="#CF0500", lw=.9)  # Set color, line width and antialiasing
     plt.title("Daily freeCodeCamp Forum Page Views 5/2016-12/2019")
     plt.xlabel("Date")
     plt.ylabel("Page Views")
@@ -32,16 +32,19 @@ def draw_line_plot():
 def draw_bar_plot():
     # Copy and modify data for monthly bar plot
     # Inspired by https://matplotlib.org/3.1.1/gallery/lines_bars_and_markers/barchart.html
+    # I wanted to fiddle around a bit with doing the plots manually rather than using Seaborn.
 
     months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
               "November", "December"]
 
-    df["year"] = pd.DatetimeIndex(df["date"]).year
-    df["month"] = pd.DatetimeIndex(df["date"]).month
+    df_bar = df.copy()
 
-    df_grouped = df.groupby(["year", "month"]).mean().copy().reset_index()
+    df_bar["year"] = pd.DatetimeIndex(df_bar["date"]).year
+    df_bar["month"] = pd.DatetimeIndex(df_bar["date"]).month
 
-    group_labels = pd.unique(df["year"])
+    df_grouped = df_bar.groupby(["year", "month"]).mean().copy().reset_index()
+
+    group_labels = pd.unique(df_bar["year"])
 
     means = list()
 
@@ -50,8 +53,8 @@ def draw_bar_plot():
         if len(means[i - 1]) < 4:
             means[i - 1].insert(0, 0)
 
-    x = np.arange(len(group_labels))  # the year label locations
-    width = 0.05  # the width of the bars
+    x = np.arange(len(group_labels))  # The year label locations
+    width = 0.05  # The width of the bars
 
     fig, axis = plt.subplots(figsize=(10, 13 * (2 / 3)))
 
@@ -69,8 +72,6 @@ def draw_bar_plot():
     axis.legend(title="Months", title_fontsize="x-large", fontsize="x-large")
 
     fig.tight_layout()
-
-    plt.show()
 
     # Save image and return fig (don't change this part)
     fig.savefig('bar_plot.png')
