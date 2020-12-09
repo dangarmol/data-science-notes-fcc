@@ -78,17 +78,32 @@ def draw_bar_plot():
     return fig
 
 def draw_box_plot():
-    # Prepare data for box plots (this part is done!)
+    # After the last plot, I realised that not using seaborn was a mistake :)
     df_box = df.copy()
-    df_box.reset_index(inplace=True)
-    df_box['year'] = [d.year for d in df_box.date]
-    df_box['month'] = [d.strftime('%b') for d in df_box.date]
+
+    df_box["year"] = pd.DatetimeIndex(df_box["date"]).year
+    df_box["month"] = pd.DatetimeIndex(df_box["date"]).month
+    short_months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    df_box["month_text"] = df_box["month"].map(lambda month: short_months[month - 1])
 
     # Draw box plots (using Seaborn)
+    df_box = df_box.sort_values(by="month")
 
+    fig, axis = plt.subplots(1, 2, figsize=(30, 10))
+    yearwise = axis[0]
+    monthwise = axis[1]
 
+    yearwise = sns.boxplot(x=df_box.year, y=df_box.value, ax=yearwise)
+    yearwise.set_title("Year-wise Box Plot (Trend)", fontsize="17")
+    yearwise.set_xlabel("Year", fontsize="14")
+    yearwise.set_ylabel("Page Views", fontsize="14")
+    yearwise.tick_params(labelsize="14")
 
-
+    monthwise = sns.boxplot(x="month_text", y="value", data=df_box, ax=monthwise)
+    monthwise.set_title("Month-wise Box Plot (Seasonality)", fontsize="17")
+    monthwise.set_xlabel("Month", fontsize="14")
+    monthwise.set_ylabel("Page Views", fontsize="14")
+    monthwise.tick_params(labelsize="14")
 
     # Save image and return fig (don't change this part)
     fig.savefig('box_plot.png')
